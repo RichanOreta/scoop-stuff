@@ -25,24 +25,29 @@ $apps = @($local) + @($global)
 $search_all = $false
 $reg_files = ''
 
-if ($cmd -eq $null){
+if ($null -eq $cmd)
+{
     Write-Output "No command argument"
     exit
 }
 
-if ($program -eq $null -and $cmd -eq 'list'){
+if ($null -eq $program -and $cmd -eq 'list')
+{
     $search_all = $true
     $apps | where-object { !$query -or ($_.name -match $query) } | foreach-object {
-        if ($search_all) {
+        if ($search_all)
+        {
             $name = $_.name
-            $reg_files = get-childitem -path $scoopdir\apps\$name\current *.reg -recurse -file -name
+            $reg_files = get-childitem -path $scoopdir\apps\$name\current *.reg -recurse -depth 0 -file -name
 
-            if ($reg_files -ne $null){
+            if ($null -ne $reg_files)
+            {
                 write-output("$($name):")
 
-                    for ($i = 0; $i -lt $reg_files.length; $i++) {
-                        write-output("    $($reg_files[$i])")
-                    }
+                for ($i = 0; $i -lt $reg_files.length; $i++)
+                {
+                    write-output("    $($reg_files[$i])")
+                }
                 write-output("")
             }
         }
@@ -50,31 +55,42 @@ if ($program -eq $null -and $cmd -eq 'list'){
     exit
 }
 
-if ($cmd -eq "list"){
-    if (test-path $scoopdir\apps\$program\current\){
-        $reg_files = get-childitem -path $scoopdir\apps\$program\current *.reg -recurse -file -name
-        if ($reg_files -ne $null){
+if ($cmd -eq "list")
+{
+    if (test-path $scoopdir\apps\$program\current\)
+    {
+        $reg_files = get-childitem -path $scoopdir\apps\$program\current *.reg -recurse -depth 0 -file -name
+        if ($null -ne $reg_files)
+        {
             write-output("$($program):")
 
-            for ($i = 0; $i -lt $reg_files.length; $i++) {
+            for ($i = 0; $i -lt $reg_files.length; $i++)
+            {
                 write-output("    $($reg_files[$i])")
             }
             write-output("")
         }
-    } else {
+    } else
+    {
         write-output "'$($program)' does not exist"
     }
-} elseif (($cmd -eq "import")){
-    if ($regfilename -ne $null) {
-        if (test-path $scoopdir\apps\$program\current\$regfilename){
+} elseif (($cmd -eq "import"))
+{
+    if ($null -ne $regfilename)
+    {
+        if (test-path $scoopdir\apps\$program\current\$regfilename)
+        {
             reg import $scoopdir\apps\$program\current\$regfilename
-        } else {
+        } else
+        {
             write-output "'$($regfilename)' does not exist"
         }
-    } else {
+    } else
+    {
         write-output "no .reg file was passed as an argument"
     }
-} else {
+} else
+{
     write-output "command does not exist"
 }
 
