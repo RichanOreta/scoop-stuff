@@ -78,6 +78,11 @@ if ($cmd -eq "list")
 {
     if ($null -ne $regfilename)
     {
+        if (-not $regfilename.Contains('.reg'))
+        {
+            $regfilename = $regfilename + '.reg'
+        }
+
         if (test-path $scoopdir\apps\$program\current\$regfilename)
         {
             reg import $scoopdir\apps\$program\current\$regfilename
