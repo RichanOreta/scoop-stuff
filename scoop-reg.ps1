@@ -10,12 +10,15 @@
 #
 # To import a selected registry file from a given program:
 #      scoop reg import vscodium install-context.reg
+
+# To import multiple registry files from a given program:
+#      scoop reg import vscodium install-context.reg,install-associations.reg
 #
 # Options:
 #   list              lists the programs registry files
 #   import            imports the registry file selected in the program
 
-param($cmd, $program, $regfilename)
+param([String]$cmd, [String]$program, [String[]]$registry_files)
 
 . "$PSScriptRoot\..\lib\core.ps1"
 
@@ -25,77 +28,61 @@ $apps = @($local) + @($global)
 $search_all = $false
 $reg_files = ''
 
-if ($null -eq $cmd)
-{
-    Write-Output "No command argument"
-    exit
-}
-
-if ($null -eq $program -and $cmd -eq 'list')
-{
+if (([string]::IsNullOrEmpty($cmd))) {
+    error "No command argument"
+} elseif (([string]::IsNullOrEmpty($program)) -and $cmd -eq 'list') {
     $search_all = $true
     $apps | where-object { !$query -or ($_.name -match $query) } | foreach-object {
-        if ($search_all)
-        {
+        if ($search_all) {
             $name = $_.name
             $reg_files = get-childitem -path $scoopdir\apps\$name\current *.reg -recurse -depth 0 -file -name
 
-            if ($null -ne $reg_files)
-            {
-                write-output("$($name):")
+            if ($null -ne $reg_files) {
+                write-host("$($name):")
 
-                for ($i = 0; $i -lt $reg_files.length; $i++)
-                {
-                    write-output("    $($reg_files[$i])")
+                for ($i = 0; $i -lt $reg_files.length; $i++) {
+                    write-host("    $($reg_files[$i])")
                 }
-                write-output("")
+                write-host("")
             }
         }
     }
-    exit
-}
-
-if ($cmd -eq "list")
-{
-    if (test-path $scoopdir\apps\$program\current\)
-    {
+} elseif ($null -ne $program -and $cmd -eq 'list') {
+    if (test-path $scoopdir\apps\$program\current\) {
         $reg_files = get-childitem -path $scoopdir\apps\$program\current *.reg -recurse -depth 0 -file -name
-        if ($null -ne $reg_files)
-        {
-            write-output("$($program):")
+        if ($null -ne $reg_files) {
+            write-host("$($program):")
 
-            for ($i = 0; $i -lt $reg_files.length; $i++)
-            {
-                write-output("    $($reg_files[$i])")
+            for ($i = 0; $i -lt $reg_files.length; $i++) {
+                write-host("    $($reg_files[$i])")
             }
-            write-output("")
+            write-host("")
         }
-    } else
-    {
-        write-output "'$($program)' does not exist"
     }
-} elseif (($cmd -eq "import"))
-{
-    if ($null -ne $regfilename)
-    {
-        if (-not $regfilename.Contains('.reg'))
-        {
-            $regfilename = $regfilename + '.reg'
-        }
+    else {
+        error "'$($program)' does not exist"
+    }
+} elseif ($cmd -eq "import") {
+    if (Test-Path $scoopdir\apps\$program\current) {
+        try {
+            foreach ($regfilename in $registry_files.split(",")) {
+                if (-not $regfilename.Contains('.reg')) {
+                    $regfilename = $regfilename + '.reg'
+                }
 
-        if (test-path $scoopdir\apps\$program\current\$regfilename)
-        {
-            reg import $scoopdir\apps\$program\current\$regfilename
-        } else
-        {
-            write-output "'$($regfilename)' does not exist"
+                if (test-path $scoopdir\apps\$program\current\$regfilename) {
+                    reg import $scoopdir\apps\$program\current\$regfilename
+                }
+                else {
+                    error "'$($regfilename)' does not exist"
+                }
+            }
         }
-    } else
-    {
-        write-output "no .reg file was passed as an argument"
+        catch {
+            error "no .reg file was passed as an argument"
+        }
     }
-} else
-{
-    write-output "command does not exist"
+    else {
+        error "'$($program)' does not exist"
+    }
 }
-
