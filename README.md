@@ -1,2 +1,2 @@
 # Stuff about scoop
-just some basic setup for scoop that I use
+Just some basic setup for scoop that I use. As well as some custom commands that I made for scoop.
