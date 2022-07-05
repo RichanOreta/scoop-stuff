@@ -20,6 +20,6 @@ foreach ($app in $apps)
         }
     } else
     {
-        error "Persist data does not exist"
+        error "Persist data does not exist. [$($app)]"
     }
 }
